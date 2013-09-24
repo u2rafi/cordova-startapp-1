@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="com.cordova.plugins.startapp"
+    version="1.0.0">
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <name>StartApp</name>
+    <description>Plugin that allow you to open another app.</description>
+    <author>Dmitry Medvinsky</author>
+    <keywords>cordova,startapp,android,ios</keywords>
+    <license>Apache 2.0 License</license>
+
+    <js-module src="www/startapp.js" name="StartApp">
+        <clobbers target="StartApp" />
+    </js-module>
+
+    <!-- android -->
+    <platform name="android">
+        <source-file src="src/android/StartApp.java" target-dir="src/com/cordova/plugins/startapp" />
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="StartApp" >
+                <param name="android-package" value="com.cordova.plugins.startapp.StartApp" />
+            </feature>
+        </config-file>
+    </platform>
+</plugin>
