@@ -1,8 +1,9 @@
-package com.phonegap.plugins.startapp;
+package com.cordova.plugins.startapp;
 
 import org.apache.cordova.DroidGap;
-import org.apache.cordova.api.Plugin;
-import org.apache.cordova.api.PluginResult;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
+import org.apache.cordova.CallbackContext;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,8 +19,10 @@ import android.content.Intent;
  * @author Dmitry Medvinsky <dmedvinsky@gmail.com>
  * @license MIT/X11
  */
-public class StartApp extends Plugin
+public class StartApp extends CordovaPlugin
 {
+    private CallbackContext callbackContext = null;
+
     /**
      * Executes the request and returns PluginResult.
      *
@@ -31,21 +34,27 @@ public class StartApp extends Plugin
      *          JavaScript callback ID.
      * @return A PluginResult object with a status and message.
      */
-    public PluginResult execute(String action, JSONArray args, String callbackId)
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
     {
         try {
+            this.callbackContext = callbackContext;
+
             if (action.equals("startApp")) {
                 if (args.length() != 1) {
-                    return new PluginResult(PluginResult.Status.INVALID_ACTION);
+                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
+                    return false;
                 }
                 String component = args.getString(0);
                 startActivity(component);
-                return new PluginResult(PluginResult.Status.OK);
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+                return true;
             }
-            return new PluginResult(PluginResult.Status.INVALID_ACTION);
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
+            return false;
         } catch (JSONException e) {
             e.printStackTrace();
-            return new PluginResult(PluginResult.Status.JSON_EXCEPTION);
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.JSON_EXCEPTION));
+            return false;
         }
     }
 
@@ -60,6 +69,6 @@ public class StartApp extends Plugin
         Intent intent = new Intent("android.intent.action.MAIN");
         intent.addCategory("android.intent.category.LAUNCHER");
         intent.setComponent(ComponentName.unflattenFromString(component));
-        this.ctx.startActivity(intent);
+        ((DroidGap) this.cordova.getActivity()).startActivity(intent);
     }
 }
