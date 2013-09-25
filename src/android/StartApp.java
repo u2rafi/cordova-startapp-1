@@ -7,10 +7,12 @@ import org.apache.cordova.CallbackContext;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
 
 
 /**
@@ -21,8 +23,9 @@ import android.content.Intent;
  */
 public class StartApp extends CordovaPlugin
 {
-    private CallbackContext callbackContext = null;
-
+    private String packageName = null;
+    private String mainActivity = null;
+    
     /**
      * Executes the request and returns PluginResult.
      *
@@ -37,15 +40,15 @@ public class StartApp extends CordovaPlugin
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext)
     {
         try {
-            this.callbackContext = callbackContext;
-
             if (action.equals("startApp")) {
-                if (args.length() != 1) {
+                if (args.length() != 2) {
                     callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.INVALID_ACTION));
                     return false;
                 }
-                String component = args.getString(0);
-                startActivity(component);
+                packageName = args.getString(0);
+                mainActivity = args.getString(1);
+                
+                startActivity(packageName+"/"+mainActivity);
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
                 return true;
             }
@@ -66,9 +69,22 @@ public class StartApp extends CordovaPlugin
      *            E.g.: com.mycompany.myapp/com.mycompany.myapp.MyActivity
      */
     void startActivity(String component) {
-        Intent intent = new Intent("android.intent.action.MAIN");
-        intent.addCategory("android.intent.category.LAUNCHER");
-        intent.setComponent(ComponentName.unflattenFromString(component));
-        ((DroidGap) this.cordova.getActivity()).startActivity(intent);
+        try{
+            Intent intent = new Intent("android.intent.action.MAIN");
+            intent.addCategory("android.intent.category.LAUNCHER");
+            intent.setComponent(ComponentName.unflattenFromString(component));
+            ((DroidGap) this.cordova.getActivity()).startActivity(intent);
+        }
+        catch(ActivityNotFoundException ex){
+            /**
+             * If not installed, open market
+             */
+            String[] packageNameSplt = component.split("/");
+            String packageName = packageNameSplt[0];
+
+            Intent marketIntent = new Intent(Intent.ACTION_VIEW);
+            marketIntent.setData(Uri.parse("market://details?id="+packageName));
+            ((DroidGap) this.cordova.getActivity()).startActivity(marketIntent);
+        }
     }
 }
